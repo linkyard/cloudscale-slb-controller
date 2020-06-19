@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudscale-slb-controller
+  namespace: ingress
+  labels:
+    app: cloudscale-slb-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudscale-slb-controller
+  template:
+    metadata:
+      labels:
+        app: cloudscale-slb-controller
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - cloudscale-slb-controller
+                topologyKey: kubernetes.io/hostname
+      serviceAccountName: cloudscale-slb-controller
+      imagePullSecrets:
+        - name: docker-gcr
+      hostNetwork: true
+      containers:
+        - name: cloudscale-slb-controller
+          image: eu.gcr.io/linkyard-191615/cloudscale-slb-controller:latest
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+          env:
+            - name: CLOUDSCALE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloudscale-token
+                  key: token
+            - name: IP_LIMIT
+              value: "10"
+            - name: LOG_LEVEL
+              value: Debug
+            - name: CONTROLLER_ID
+              value: ""
+            - name: LEADER_ELECTION_CONFIGMAP
+              value: cloudscale-slb-controller-default-election
+            - name: LEADER_ELECTION_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: LEADER_ELECTION_NODE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          resources:
+            # request one cpu and some RAM, because the IP forwarding might require some CPU
+            requests:
+              cpu: 100m
+              memory: 50Mi

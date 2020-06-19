@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: cloudscale-slb-controller
+  name: cloudscale-slb-controller
+  namespace: ingress
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  labels:
+    app: cloudscale-slb-controller
+  name: cloudscale-slb-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - services
+      - endpoints
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - get
+      - create
+      - patch
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - services/status
+    verbs:
+      - update
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: cloudscale-slb-controller
+  name: cloudscale-slb-controller-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cloudscale-slb-controller
+subjects:
+  - kind: ServiceAccount
+    name: cloudscale-slb-controller
+    namespace: ingress
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  labels:
+    app: cloudscale-slb-controller
+  name: cloudscale-slb-controller
+  namespace: ingress
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - create
+      - patch
+      - update
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  labels:
+    app: cloudscale-slb-controller
+  name: cloudscale-slb-controller-binding
+  namespace: ingress
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cloudscale-slb-controller
+subjects:
+  - kind: ServiceAccount
+    name: cloudscale-slb-controller
