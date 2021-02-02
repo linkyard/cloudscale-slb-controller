@@ -142,12 +142,10 @@ func (adapter *AdapterCloudscaleClient) recreateServerCache() error {
 
 	for _, server := range servers {
 		tmpServer := server
-		idx := strings.Index(tmpServer.Name, ".")
-		internalName := fmt.Sprintf("%v.internal.%v", tmpServer.Name[0:idx], tmpServer.Name[idx + 1:len(tmpServer.Name)])
 
-		log.Debugf("adding server with id %v (%v) to cache", tmpServer.UUID, internalName)
-		adapter.serverNameToId[internalName] = tmpServer.UUID
-		adapter.serverIdToName[tmpServer.UUID] = internalName
+		log.Debugf("adding server with id %v (%v) to cache", tmpServer.UUID, tmpServer.Name)
+		adapter.serverNameToId[tmpServer.Name] = tmpServer.UUID
+		adapter.serverIdToName[tmpServer.UUID] = tmpServer.Name
 	}
 	return nil
 }
