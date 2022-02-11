@@ -246,9 +246,6 @@ func (processor *EventProcessor) verifyIp(svc *v1.Service) (string, string, erro
 			return "", "", err
 		}
 	}
-	if svc.Annotations[ExistingIpAnnotation] != "" {
-		return "", "", err
-	}
 	if ip.Ip == "" {
 		ip, serverName, err := processor.createIp(svc)
 		if err != nil {
