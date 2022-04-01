@@ -1,11 +1,11 @@
-# runs at a regular interval, on merge to main, and on pull requests
+# runs at a regular interval, on merge to master, and on pull requests
 name: QA
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
   schedule:
     - cron: '47 15 * * 2'
 

@@ -1,10 +1,10 @@
-# runs on each push to main and is responsible for creating new tags/releases
+# runs on each push to master and is responsible for creating new tags/releases
 name: Create Semantic Release
 
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   semantic-release:
