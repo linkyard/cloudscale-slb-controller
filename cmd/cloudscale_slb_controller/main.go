@@ -29,7 +29,7 @@ Flags:
 -cloudscale-token           cloudscale.ch API token [CLOUDSCALE_TOKEN]
 
 -ip-limit					maximum number of floating ips that are allowed to exist on the
-                            cloudscale.ch account (default: 5); used to make sure we don't go 
+                            cloudscale.ch account (default: 5); used to make sure we don't go
                             bankrupt if this component runs amok [IP_LIMIT]
 
 -kubeconfig                 path to a kubernetes kubeconfig [KUBECONFIG]
