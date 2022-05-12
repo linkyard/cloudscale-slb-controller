@@ -18,5 +18,5 @@ jobs:
         id: semrel
         uses: go-semantic-release/action@v1.17
         with:
-          github-token: ${{ secrets.BOT_ACCESS_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           allow-initial-development-versions: true
