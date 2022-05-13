@@ -144,9 +144,9 @@ func (processor *EventProcessor) ReAttach(namespace string, name string) (*v1.Se
 	svc, err := processor.k8sClient.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		log.WithFields(log.Fields{
-			"svc":         getKeyFor(namespace, name),
-			"action":      "ReAttach",
-			"error":       err,
+			"svc":    getKeyFor(namespace, name),
+			"action": "ReAttach",
+			"error":  err,
 		}).Error("unable to re-attach ip")
 		processor.emitEvent(
 			"Warning",
@@ -165,10 +165,10 @@ func (processor *EventProcessor) VerifyIp(svc *v1.Service) error {
 	ip, serverName, err := processor.verifyIp(svc)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"svc":    getKey(svc),
-			"action": "VerifyIp",
+			"svc":         getKey(svc),
+			"action":      "VerifyIp",
 			"server_name": serverName,
-			"error":  err,
+			"error":       err,
 		}).Error("unable to verify ip")
 		processor.emitEvent(
 			"Warning",
