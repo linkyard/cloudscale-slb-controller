@@ -2,7 +2,7 @@
 cloudscale:
   token:
     value: "SECRET"
-    #existingSecret: "mysecretname"
+    # existingSecret: "mysecretname"
 
 controller:
   image:
