@@ -1,3 +1,4 @@
-image:
-  repository: cloudscale-slb-controller
-  tag: latest
+controller:
+  image:
+    repository: cloudscale-slb-controller
+    tag: latest
