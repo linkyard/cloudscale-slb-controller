@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: cloudscale-slb-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudscale-slb-controller
+  template:
+    metadata:
+      labels:
+        app: cloudscale-slb-controller
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - cloudscale-slb-controller
+                topologyKey: kubernetes.io/hostname
+      serviceAccountName: {{ .Release.Name }}-sa
+      hostNetwork: true
+      containers:
+        - name: cloudscale-slb-controller
+          image: "{{ .Values.controller.image.repository }}:{{ .Values.controller.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
+          securityContext:
+            privileged: true
+          env:
+            - name: CLOUDSCALE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.cloudscale.token.existingSecret }}
+                  name: {{.Values.cloudscale.token.existingSecret }}
+                  {{- else }}
+                  name: {{ .Release.Name }}-cloudscale-token
+                  key: token
+                  {{- end }}
+            - name: IP_LIMIT
+              value: {{ default "5" .Values.controller.ipLimit | quote }}
+            - name: LOG_LEVEL
+              value: {{ default "Debug" .Values.controller.logLevel | quote }}
+            - name: CONTROLLER_ID
+              value: {{ default "" .Values.controller.controllerId | quote }}
+            - name: LEADER_ELECTION_CONFIGMAP
+              value: cloudscale-slb-controller-{{ .Release.Name }}-election
+            - name: LEADER_ELECTION_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: LEADER_ELECTION_NODE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          resources:
+            requests:
+              cpu: {{ default "250m" .Values.controller.cpuRequests }}
+              memory: {{ default "128Mi" .Values.controller.memoryRequests }}

@@ -1,0 +1,43 @@
+name: Lint & Install Helm Charts
+on: pull_request
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Build & save image
+        run: |
+          docker build -t cloudscale-slb-controller:latest -f Dockerfile .
+          docker save -o /tmp/cloudscale-slb-controller.tar cloudscale-slb-controller:latest
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v2.1
+        with:
+          version: v3.7.0
+
+      - uses: actions/setup-python@v3
+        with:
+          python-version: 3.7
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.2.1
+
+      - name: Run chart-testing (lint)
+        run: ct --config .github/ct.yaml lint
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.2.0
+        with:
+          node_image: kindest/node:v1.19.11
+
+      - name: Load container image
+        run: |
+          kind load image-archive /tmp/cloudscale-slb-controller.tar --name chart-testing
+
+      - name: Run chart-testing (install)
+        run: ct --config .github/ct.yaml install
+
