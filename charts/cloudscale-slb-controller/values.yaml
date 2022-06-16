@@ -5,7 +5,7 @@ cloudscale:
     #existingSecret: "mysecretname"
 
 controller:
-  image: 
+  image:
     repository: ghcr.io/linkyard/cloudscale-slb-controller
     pullPolicy: IfNotPresent
     tag: ""
