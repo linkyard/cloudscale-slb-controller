@@ -1,0 +1,23 @@
+---
+cloudscale:
+  # -- cloudscale token to use
+  token:
+    value: "SECRET"
+    # existingSecret: "mysecretname"
+
+controller:
+  # -- controller image to use
+  image:
+    repository: ghcr.io/linkyard/cloudscale-slb-controller
+    pullPolicy: IfNotPresent
+    tag: ""
+  # -- ipLimit for controller
+  ipLimit: "10"
+  # -- loglevel for controller
+  logLevel: "Info"
+  # -- controllerID to use
+  controllerId: ""
+  # -- cpu requests for controller
+  cpuRequests: 250m
+  # -- memory requests for controller
+  memoryRequests: 128Mi
