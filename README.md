@@ -13,6 +13,7 @@ The following annotations on services of type `LoadBalancer` are supported:
 - `linkyard.ch/slb-controller-id`: this service must be processed by a controller with the given id
 - `linkyard.ch/existing-floating-ip`: use the already existing floating IP on cloudscale.ch for this
   service; note that no additional checks (e.g. port collisions) are performed
+- `linkyard.ch/preserve-floating-ip`: don't delete the floating IP on cloudscale.ch when the service is deleted (or otherwise changed in a way that the IP no longer belongs to it). Default is `false`
 
 ## configuration
 

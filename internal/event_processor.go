@@ -13,6 +13,7 @@ import (
 )
 
 const ExistingIpAnnotation = "linkyard.ch/existing-floating-ip"
+const PreserveIpAnnotation = "linkyard.ch/preserve-floating-ip"
 
 type EventProcessor struct {
 	cloudscaleClient CloudscaleClient
@@ -84,56 +85,72 @@ func (processor *EventProcessor) CreateIp(svc *v1.Service) error {
 }
 
 func (processor *EventProcessor) DeleteIp(svc *v1.Service, wasDeleted bool) error {
-	err := processor.deleteIp(svc)
-	if err != nil {
-		log.WithFields(log.Fields{
-			"svc":    getKey(svc),
-			"action": "DeleteIp",
-			"error":  err,
-		}).Error("unable to delete ip")
-		processor.emitEvent(
-			"Warning",
-			"FailedToDeleteFloatingIP",
-			fmt.Sprintf("Failed to delete IP %v: %v", getServiceLbIp(svc), err.Error()),
-			"delete-ip-failed",
-			getServiceLbIp(svc),
-			svc)
-		return err
-	} else {
-		log.Infof("successfully deleted ip %v for service %v/%v", getServiceLbIp(svc), svc.Namespace, svc.Name)
-		if !wasDeleted {
-			err = processor.updateLoadBalancerIngress(svc, "")
-			if err != nil {
-				log.WithFields(log.Fields{
-					"svc":    getKey(svc),
-					"action": "DeleteIp",
-					"error":  err,
-				}).Error("unable to update load balancer ip")
-				processor.emitEvent(
-					"Warning",
-					"DeleteLoadBalancerIpFailed",
-					fmt.Sprintf("Failed to update load balancer IP: %v", err),
-					"delete-lb-ip-failed",
-					getServiceLbIp(svc),
-					svc)
-				return err
-			} else {
-				log.Infof("load balancer ingress for service %v/%v updated successfully", svc.Namespace, svc.Name)
-				processor.emitEvent(
-					"Normal",
-					"FloatingIPDeleted",
-					"FloatingIP deleted",
-					"deleted",
-					getServiceLbIp(svc),
-					svc)
-				return nil
-			}
-		}
+	preserveIp := svc.Annotations[PreserveIpAnnotation]
+	if preserveIp == "true" {
+		// do not delete the ip, because the user has chosen so
+		log.Infof("load balancer ip for %v/%v (%v) was not deleted, because the preserve annotation has been set", svc.Namespace, svc.Name, getServiceLbIp(svc))
 		processor.emitEvent(
 			"Normal",
-			"FloatingIPDeleted",
-			"FloatingIP deleted",
-			"deleted",
+			"FloatingIPPreserved",
+			"FloatingIP preserved (put back to pool)",
+			"preserved",
+			getServiceLbIp(svc),
+			svc)
+	} else {
+		// delete the ip (from cloudscale)
+		err := processor.deleteIp(svc)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"svc":    getKey(svc),
+				"action": "DeleteIp",
+				"error":  err,
+			}).Error("unable to delete ip")
+			processor.emitEvent(
+				"Warning",
+				"FailedToDeleteFloatingIP",
+				fmt.Sprintf("Failed to delete IP %v: %v", getServiceLbIp(svc), err.Error()),
+				"delete-ip-failed",
+				getServiceLbIp(svc),
+				svc)
+			return err
+		} else {
+			log.Infof("successfully deleted ip %v for service %v/%v", getServiceLbIp(svc), svc.Namespace, svc.Name)
+			processor.emitEvent(
+				"Normal",
+				"FloatingIPDeleted",
+				"FloatingIP deleted",
+				"deleted",
+				getServiceLbIp(svc),
+				svc)
+		}
+	}
+	if wasDeleted {
+		//service was deleted, so we don't need to update it
+		return nil
+	} else {
+		// remove the ip from the service
+		err := processor.updateLoadBalancerIngress(svc, "")
+		if err != nil {
+			log.WithFields(log.Fields{
+				"svc":    getKey(svc),
+				"action": "DeleteIp",
+				"error":  err,
+			}).Error("unable to update load balancer ip")
+			processor.emitEvent(
+				"Warning",
+				"DeleteLoadBalancerIpFailed",
+				fmt.Sprintf("Failed to update load balancer IP: %v", err),
+				"delete-lb-ip-failed",
+				getServiceLbIp(svc),
+				svc)
+			return err
+		}
+		log.Infof("load balancer ingress for service %v/%v updated successfully", svc.Namespace, svc.Name)
+		processor.emitEvent(
+			"Normal",
+			"FloatingIPDetached",
+			"FloatingIP removed from service",
+			"detached",
 			getServiceLbIp(svc),
 			svc)
 		return nil
