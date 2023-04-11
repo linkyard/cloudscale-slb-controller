@@ -3,7 +3,7 @@ apiVersion: v2
 name: cloudscale-slb-controller
 description: Kubernetes service load-balancer-controller for cloudscale resources
 type: application
-version: 0.3.1
+version: 0.3.2
 appVersion: v0.3.0
 sources:
   - https://github.com/linkyard/cloudscale-slb-controller.git

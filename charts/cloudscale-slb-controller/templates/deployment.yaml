@@ -47,7 +47,7 @@ spec:
                   key: token
                   {{- end }}
             - name: IP_LIMIT
-              value: {{ default "5" .Values.controller.ipLimit | quote }}
+              value: {{ default "10" .Values.controller.ipLimit | quote }}
             - name: LOG_LEVEL
               value: {{ default "Debug" .Values.controller.logLevel | quote }}
             - name: CONTROLLER_ID
